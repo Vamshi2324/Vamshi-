@@ -1,0 +1,78 @@
+columnbyexample columns: {Date of Publication} value: CASE([ISNULL({Date of Publication}),NULL(),ISMISSING([{Date of Publication}]),'',SUBSTRING({Date of Publication}, FINDNTH({Date of Publication}, /[0-9]+/, 1, left, false), LEN({Date of Publication}) - LEN(SUBSTITUTE(SUBSTRING({Date of Publication}, FINDNTH({Date of Publication}, /[0-9]+/, 1, left, false), LEN({Date of Publication})), /[0-9]+/, '', false, /^/)))]) exampleMappingId: 20710 as: 'date of pub 2'
+drop col: {Date of Publication} action: Drop
+dateformat col: {date of pub 2} type: custom format: 'yyyy'
+columnbyexample columns: {Place of Publication} value: CASE([ISNULL({Place of Publication}),NULL(),ISMISSING([{Place of Publication}]),'',SUBSTRING({Place of Publication}, FINDNTH({Place of Publication}, /[A-Za-z0-9]+/, 1, right, false), LEN({Place of Publication}) - LEN(SUBSTITUTE(SUBSTRING({Place of Publication}, FINDNTH({Place of Publication}, /[A-Za-z0-9]+/, 1, right, false), LEN({Place of Publication})), /[A-Za-z0-9]+/, '', false, /^/)))]) exampleMappingId: 20713 as: 'date 3'
+columnbyexample columns: {date 3} value: CASE([ISNULL({date 3}),NULL(),ISMISSING([{date 3}]),'',CASE([MATCHES([{date 3}], /^[0-9]+$/, false),{date 3},' '])]) exampleMappingId: 20714 as: 'date4'
+merge col: date4,{date of pub 2} as: 'column1'
+rename type: manual mapping: [column1,'Date5']
+replacepatterns col: Date5 with: '' on: ` ` global: true
+columnbyexample columns: Date5 value: CASE([ISNULL(Date5),NULL(),ISMISSING([Date5]),'',SUBSTRING(Date5, 0, 4)]) exampleMappingId: 20716 as: 'Date of publication'
+drop col: Date5 action: Drop
+drop col: {date of pub 2} action: Drop
+drop col: date4 action: Drop
+replacepatterns col: {date 3} with: '' on: `{start}{digit}{4}{end}`
+rename type: manual mapping: [{date 3},'Place2']
+extractpatterns type: custom col: {Place of Publication} start: `:` end: `,`
+replacepatterns col: {Place of Publication1} with: '' on: ` ` global: true
+merge col: {Place of Publication1},Place2 as: 'column1'
+rename type: manual mapping: [column1,'Place22']
+replacepatterns col: Place22 with: 'New York' on: `York` global: true
+drop col: Place2 action: Drop
+drop col: {Place of Publication1} action: Drop
+replacepatterns col: {Place of Publication} with: '' on: `D. ` global: true
+replacepatterns col: {Place of Publication} with: '' on: `A. ` global: true
+replacepatterns col: {Place of Publication} with: '' on: ` & Co` global: true
+drop col: {Place of Publication} action: Drop
+rename type: manual mapping: [Place22,'Place of Publication']
+splitpatterns col: Shelfmarks type: on on: '|'
+columnbyexample columns: {Place of Publication} value: CASE([ISNULL({Place of Publication}),NULL(),ISMISSING([{Place of Publication}]),'',CASE([MATCHES([{Place of Publication}], /^"+[a-z]+\.+ +[0-9]+\.+ +[A-Z]+\.+ +[A-Z]+[a-z]+:+ +[A-Z]+[a-z]+,+ +\[+[0-9]+\?+\]+"+$/, false),SUBSTRING({Place of Publication}, 18, 26),MATCHES([{Place of Publication}], /^"+[a-z]+\.+ +[0-9]+\.+ +[A-Z]+[a-z]+ +[A-Z]+[a-z]+:+ +[A-Z]+[a-z]+,+ +[0-9]+"+$/, false),SUBSTRING({Place of Publication}, FINDNTH({Place of Publication}, /[A-Z]+/, 1, right, false), LEN({Place of Publication}) - LEN(SUBSTITUTE(SUBSTRING({Place of Publication}, FINDNTH({Place of Publication}, /[A-Za-z]+/, 1, right, false), LEN({Place of Publication})), /[A-Za-z]+/, '', false, /^/))),SUBSTRING({Place of Publication}, FINDNTH({Place of Publication}, /[A-Z]+/, 1, right, false), LEN({Place of Publication}) - LEN(SUBSTITUTE(SUBSTRING({Place of Publication}, FINDNTH({Place of Publication}, /[A-Za-z]+/, 1, right, false), LEN({Place of Publication})), /[A-Za-z]+/, '', false, /^/)))])]) exampleMappingId: 20711 as: 'place 2'
+columnbyexample columns: {Place of Publication} value: CASE([ISNULL({Place of Publication}),NULL(),ISMISSING([{Place of Publication}]),'',SUBSTRING({Place of Publication}, FINDNTH({Place of Publication}, /[A-Za-z0-9]+/, 1, right, false), LEN({Place of Publication}) - LEN(SUBSTITUTE(SUBSTRING({Place of Publication}, FINDNTH({Place of Publication}, /[A-Za-z0-9]+/, 1, right, false), LEN({Place of Publication})), /[A-Za-z0-9]+/, '', false, /^/)))]) exampleMappingId: 20712 as: 'date3'
+splitpatterns col: Shelfmarks2 type: on on: '|'
+drop col: {place 2} action: Drop
+drop col: date3 action: Drop
+replacepatterns col: {Edition Statement} with: '' on: `"` global: true
+replacepatterns col: {Edition Statement} with: ' ' on: ` ` global: true
+replacepatterns col: {Edition Statement} with: ' ' on: ` ` global: true
+replacepatterns col: {Edition Statement} with: '' on: `[` global: true
+splitpatterns col: {Edition Statement} type: on on: `.]`
+splitpatterns col: {Edition Statement1} type: on on: ', ' limit: 2
+drop col: {Edition Statement4} action: Drop
+drop col: {Edition Statement5} action: Drop
+rename type: manual mapping: [{Edition Statement3},'Edition Statement']
+merge col: {Edition Statement},{Edition Statement2} with: '' as: 'column1'
+drop col: {Edition Statement} action: Drop
+drop col: {Edition Statement2} action: Drop
+Replace matches  of ` ` from Publisher with ''
+replacepatterns col: Publisher with: '' on: `"` global: true
+rename type: manual mapping: [column1,'Edition Statement']
+replacepatterns col: Contributors with: '' on: `"` global: true
+splitpatterns col: Contributors type: on on: `{delim-ws}`
+replacepatterns col: Publisher with: '' on: `Printedby` global: true
+replacepatterns col: Author with: '' on: `"` global: true
+replacepatterns col: Author with: '' on: `,` global: true
+settype col: Contributors1 type: String
+textformat col: Contributors1 type: propercase
+merge col: Contributors1,Contributors2 with: ' ' as: 'column1'
+rename type: manual mapping: [column1,'Contributors']
+drop col: Contributors1,Contributors2 action: Drop
+replacepatterns col: Title with: '' on: `"` global: true
+replacepatterns col: Title with: '' on: `{start}[|]{end}` global: true
+extractpatterns type: custom col: Title end: '. '
+replacepatterns col: Title with: '' on: `...` global: true
+replacepatterns col: Title with: '' on: `,` global: true
+textformat col: Author type: propercase
+drop col: Title1 action: Drop
+replacepatterns col: Title with: '' on: `[` global: true
+replacepatterns col: Title with: '' on: `]` global: true
+settype col: {Date of publication} datetimeType: 'Datetime','yy','yyyy' type: Datetime
+drop col: {Corporate Author} action: Drop
+drop col: Engraver action: Drop
+drop col: Shelfmarks4 action: Drop
+drop col: {Corporate Contributors} action: Drop
+drop col: {Former owner} action: Drop
+splitpatterns col: {Edition Statement} type: on on: `{delim}` start: `edition`
+drop col: {Edition Statement2} action: Drop
+splitpatterns col: {Edition Statement1} type: on on: '.' limit: 2
+drop col: {Edition Statement3} action: Drop
+drop col: {Edition Statement4} action: Drop
+rename type: manual mapping: [{Edition Statement2},'Edition Statement']
